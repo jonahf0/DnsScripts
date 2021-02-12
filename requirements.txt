@@ -1,0 +1,2 @@
+dnspython
+tcp_latency
