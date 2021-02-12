@@ -1,0 +1,1 @@
+This is one of my first repositories. It is meant to consist of DNS footprinting and enumeration scripts, ultimately culminating in a more comprehensive DNS enumeration tool. It is very inspired by the fierce.pl script, and these will likely have much of the same functionality.
