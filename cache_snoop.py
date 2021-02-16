@@ -1,10 +1,5 @@
-from dns import resolver, query, message
-
-#possibly  implement other function if tor interface desired
-    #else, proxychains could be fine
-    #new_resolver = resolver.Resolver(configure=False)
-    #new_resolver.nameservers = ['127.0.0.1']
-    #new_resolver.port = 9053
+from dns import resolver, query, message, rcode
+from tcp_latency import measure_latency
 
 def perform_cache_snoop(domain, server):
     
@@ -18,11 +13,9 @@ def perform_cache_snoop(domain, server):
 
     return response
 
-def cache_snoop(domain, server):
+def deduce_cache_snoop(domain, server):
 
-    print("Attempting to snoop on {} for {}".format(server, domain))
-
-    perform_cache_snoop(domain, server)
+    pass
 
     
 
