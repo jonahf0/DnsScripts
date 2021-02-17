@@ -1,4 +1,5 @@
-from cache_snoop import perform_cache_snoop, deduce_cache_snoop
+from cache_snoop import perform_cache_snoop, deduce_from_ttl, \
+    get_ttl_from_ns, deduce_cache_snoop
 
 def test_on_root():
     response = perform_cache_snoop("google.com", "a.root-servers.net")
@@ -6,13 +7,9 @@ def test_on_root():
     assert len(response.answer) == 0
     assert len(response.authority) == 1
 
-'''
-def test_deduce_is_cached():
-    #response = perform_cache_snoop("google.com", "dns.google")
+def test_get_ttl_from_ns():
+    assert get_ttl_from_ns("google.com") == 300
 
-    assert deduce_cache_snoop("google.com", "dns.google") == True
-
-def test_deduce_is_not():
-    #response = perform_cache_snoop("zonetransfer.me", "dns.google")
-
-    assert deduce_cache_snoop("zonetransfer.me", "dns.google") == False'''
+def test_deduce_from_ttl():
+    assert deduce_from_ttl("google.com", "dns.google") == True
+    assert deduce_from_ttl("digi.ninja", "dns.google") == False
