@@ -1,48 +1,92 @@
 from dns import resolver, query, message, rcode
-from tcp_latency import measure_latency
-from nameservers import get_ns
-from return_response import return_response
+from nameservers import get_master_ns
+from return_response import *
+from sys import argv
 
-def get_ttl_from_ns(domain):
+#queries the authoritative nameservers for domain's ttl
+#returns that ttl
+#used for deducing for comparing the offical ttl to the cached entry's ttl
+def get_ttl_from_ns(name):
 
-    nameservers = get_ns(domain)
-    
-    response = return_response(domain, nameservers[0])
+    nameserver = get_master_ns(name)
+
+    response = return_response(name, nameserver)
 
     return response.answer[0].ttl
 
-def deduce_from_ttl(domain, server):
-
-    official_ttl = get_ttl_from_ns(domain)
-
-    response = return_response(domain, server)
-
-    response_time_1 = response.time
-
-    response_ttl_1 = response.answer[0].ttl
-
-    response = return_response(domain, server)
-
-    response_time_2 = response.time
-
-    response_ttl_2 = response.answer[0].ttl
+def get_response_times(name, server):
     
-    return (official_ttl - response_ttl) > 1
+    #initial = return_response(domain, server).time * 1000
 
-def deduce_from_latency(domain, server):
+    second = return_response(name, server).time * 1000
     
-    avg_latency = sum( measure_latency(domain, port=53, runs=5) ) / 5
+    times = []
 
-    response_1 = return_response(domain, server)
+    for i in range(0,10):
+        one = return_response(name, server).time * 1000
+        two = return_response(name, server).time * 1000
 
-    response_2 = return_response(domain, server)
+        times.append(abs(two-one))
 
-    return abs(avg_latency - response_2) <= abs(avg_latency - response_1)
+    avg_difference = sum(times)/len(times)
 
-def deduce_cache_snoop(domain, server):
+    return second, avg_difference
 
-    deduce_from_latency(domain, server)
-
-    deduce_from_ttl(domain, server)
-
+def print_conclusion(initial_time, initial_ttl, second, avg_difference, official_ttl):
     
+    if official_ttl > initial_ttl:
+        print("Based on the TTLs, the hostname was likely cached")
+    else:
+        print("Based on the TTLs, the hostname was likely NOT cached")
+
+    if (initial_time - second) <= avg_difference:
+        print("Based on the response times, the hostname was likely cached")
+    else:
+        print("Based on the response times, the hostname was likely NOT cached")
+
+def print_info(initial_time, initial_ttl, name, server):
+
+    print("Initial response time: {} miliseconds".format(initial_time))
+    print("Initial response TTL: {} seconds\n".format(initial_ttl))
+
+    print("Calculating different response times...")
+    second, avg_difference = get_response_times(name, server)
+
+    print("Second response time: {} miliseconds".format(second))
+    print("Average difference between consequent response times: {} miliseconds\n".format(avg_difference))
+
+    print("Fetching TTL from Master Nameserver...")
+    official_ttl = get_ttl_from_ns(name)
+
+    print("TTL from Master: {} seconds\n".format(official_ttl))
+
+    print("Note: Conclusions based on the TTLs are more accurate\nthan conclusions based on the response times...\n")
+
+    print_conclusion(initial_time, initial_ttl, second, avg_difference, official_ttl)
+
+def reach_conclusion(initial_time, initial_ttl, name, server):
+    
+    second, avg_difference = get_response_times(name, server)
+
+    official_ttl = get_ttl_from_ns(name)
+
+    print_conclusion(initial_time, initial_ttl, second, avg_difference, official_ttl)
+
+def deduce_cache_snoop(name, server, verbose=False):
+    
+    try:
+        initial_response = return_response(name, server)
+        initial_time = initial_response.time * 1000
+        initial_ttl = initial_response.answer[0].ttl
+
+        if verbose:
+            print_info(initial_time, initial_ttl, name, server)
+        else:
+            reach_conclusion(initial_time, initial_ttl, name, server)
+
+    except IndexError:
+        print("The target server did not have an answer for {}...".format(name))
+        print("The response indicates to query at {}".format(initial_response.authority[0][0].mname.to_text()))
+
+    except resolver.NoAnswer:
+        print("The master nameserver did not give an answer for {}...".format(name))

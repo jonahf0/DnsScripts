@@ -1,36 +1,36 @@
 from dns import resolver, query, message
 
-def query_data(domain, server):
+def query_data(name, server):
 
     serv_addr = resolver.resolve(server, "A")[0].address
 
-    domain_message = message.make_query(domain, "A")
+    name_message = message.make_query(name, "A")
 
-    return domain_message, serv_addr
+    return name_message, serv_addr
 
-def return_response(domain, server):
+def return_response(name, server):
     
-    domain_message, server_addr = query_data(domain, server)
+    name_message, server_addr = query_data(name, server)
 
-    response = query.udp(domain_message, server_addr)
+    response = query.udp(name_message, server_addr)
 
     return response
 
-def return_response_tcp(domain, server):
+def return_response_tcp(name, server):
 
-    domain_message, server_addr = query_data(domain, server)
+    name_message, server_addr = query_data(name, server)
 
-    response = query.tcp(domain_message, server_addr)
+    response = query.tcp(name_message, server_addr)
 
     return response
 
 
-def return_response_norecurse(domain, server):
+def return_response_norecurse(name, server):
     
-    domain_message, server_addr = query_data(domain, server)
+    name_message, server_addr = query_data(name, server)
 
-    domain_message.flags = 0
+    name_message.flags = 0
 
-    response = query.udp(domain_message, server_addr)
+    response = query.udp(name_message, server_addr)
 
     return response

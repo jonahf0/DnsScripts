@@ -1,10 +1,16 @@
 from dns import resolver
 
-def get_ns(domain):
+def get_master_ns(name):
+
+    response = resolver.resolve(name, "SOA")
+
+    return response.response.answer[0][0].mname.to_text()
+
+def get_ns(name):
 
     nameservers = []
 
-    response = resolver.resolve(domain, "NS").response.answer[0]
+    response = resolver.resolve(name, "NS").response.answer[0]
 
     for ns in response:
 
