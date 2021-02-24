@@ -12,7 +12,7 @@ def return_response(name, server):
     
     name_message, server_addr = query_data(name, server)
 
-    response = query.udp(name_message, server_addr)
+    response = query.udp(name_message, server_addr, 2.0)
 
     return response
 
@@ -20,7 +20,7 @@ def return_response_tcp(name, server):
 
     name_message, server_addr = query_data(name, server)
 
-    response = query.tcp(name_message, server_addr)
+    response = query.tcp(name_message, server_addr, 2.0)
 
     return response
 
@@ -30,7 +30,7 @@ def return_response_norecurse(name, server):
     name_message, server_addr = query_data(name, server)
 
     name_message.flags = 0
-
-    response = query.udp(name_message, server_addr)
+    
+    response = query.udp(name_message, server_addr, 2.0)
 
     return response
