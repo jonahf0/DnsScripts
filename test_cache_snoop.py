@@ -1,9 +1,5 @@
-from cache_snoop import perform_cache_snoop
+from cache_snoop import deduce_from_ttl, \
+    get_ttl_from_ns, deduce_cache_snoop
 
-def test_analyze_answer():
+def test():
     pass
-
-def test_domain_is_cached():
-    response = perform_cache_snoop("google.com", "a.root-servers.net") 
-    assert len(response.answer) == 0
-    assert len(response.authority) == 1
