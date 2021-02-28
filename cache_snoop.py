@@ -146,6 +146,8 @@ def deduce_cache_snoop(name, server, verbose=False):
     except resolver.NoAnswer:
         print("The master nameserver did not give an answer for {}...\n".format(name))
 
+#the first cache_snoop function to try;
+#attempts to make a nonrecursive query
 def norecurse_cache_snoop(name, server):
 
     response = return_response_norecurse(name, server)
@@ -163,6 +165,9 @@ def norecurse_cache_snoop(name, server):
         print("Response code: {}\n".format(rcode.to_text(response.rcode())))
         return False
 
+#the main function;
+#practically runs either norecurse or deduce cache_snoop functions
+#with a verbosity
 def cache_snoop(name, server, norecurse=True, deduce=True, verbose=False):
 
     attempt_one = False
@@ -181,7 +186,7 @@ if __name__ == "__main__":
     parser.add_argument("nameserver", help="The nameserver that you are targeting for cache-snooping")
     parser.add_argument("--verbose", help="Verbosity for deducing cached entries", action="store_true")
     parser.add_argument("--no-deduce", help="Opts out of deducing if entries are cached", action="store_true")
-    parser.add_argument("--only-deduce", help="Opts of out sending nonrecursive queries and only deducing;\nThis is helpful when you know the target server will refuse nonrecursive queries", action="store_true")
+    parser.add_argument("--only-deduce", help="Opts of out sending nonrecursive queries and only deducing;\nthis is helpful when you know the target server will refuse nonrecursive queries", action="store_true")
 
     args = parser.parse_args()
 
