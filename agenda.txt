@@ -1,0 +1,5 @@
+1) fix bug related to host_discovery_one and two not having same size return arrays
+2) fix timeout issues:
+	2a) handle timeouts
+	2b) return proper timeout error messages, like where the timeout occurs
+3) make cache_snoop deduce even if ttl cannot be retrieved

@@ -52,12 +52,10 @@ def multithreaded_discovery(ipnetwork, server, threads, out=False):
 
     network = ip_network(ipnetwork)
 
-    subnets = list( network.subnets( int(threads**(.5)) ) )
+    subnets = [ i for i in network.subnets( int(threads**(.5)) ) ]
     current_threads = []
 
-    for num in range(0,threads):
-        if num > len(subnets)-1:
-            break
+    for num in range(0, len(subnets)):
 
         x = th.Thread(
             None,
