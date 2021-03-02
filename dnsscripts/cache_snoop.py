@@ -141,11 +141,6 @@ def deduce_cache_snoop(name, server, verbose=False):
             print("The target server did not have an answer for {}...".format(name))
             print("The response indicates to query at {}\n".format(initial_response.authority[0][0].mname.to_text()))
 
-    #error happens when the master nameserver does not give an answer
-    #for the SOA record
-    except resolver.NoAnswer:
-        print("The master nameserver did not give an answer for {}...\n".format(name))
-
 #the first cache_snoop function to try;
 #attempts to make a nonrecursive query
 def norecurse_cache_snoop(name, server):
