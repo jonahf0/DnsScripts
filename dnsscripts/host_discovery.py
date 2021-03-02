@@ -25,7 +25,7 @@ def host_discovery_two(ipnetwork, server, out=False):
 
     network = ip_network(ipnetwork)
 
-    potential_hosts = network.hosts()
+    potential_hosts = [ ip for ip in network ]
 
     potential_hosts = filter(
         lambda a: a != False,
@@ -66,6 +66,8 @@ def multithreaded_discovery(ipnetwork, server, threads, out=False):
         x.start()
         current_threads.append(x)
 
+    print("Num of threads: {}".format(len(current_threads)))
+
     for thread in current_threads:
         thread.join()
 
@@ -97,16 +99,17 @@ def main(network, server, threads=0, out=False):
             multithreaded_discovery(network, server, threads, out)
 
         else:
-            host_discovery(network, server, out)
+            host_discovery_two(network, server, out)
 
 
 
 if __name__ == "__main__":
 
-    parser = ArgumentParser()
+    parser = ArgumentParser(description="This script attempts to discover each host in a given network-address range; brute-force is used, so BE CARFUL with how "+\
+        "large of an address range you wish to discover. Multithreading may speed this process up by a large factor.")
     parser.add_argument("network", help="A network's IP range in CIDR notation (ex: 192.168.0.0/24)")
     parser.add_argument("server", help="The server to make queries to; it can be any server, but a good place to start\nwould be the target domain's master server")
-    parser.add_argument("--threads", type=int, default=0, help="The amount of threads to use for discovery")
+    parser.add_argument("--threads", type=int, default=0, help="The amount of threads to use for discovery. Ultimately, this may NOT be the number of threads used, since the network may not be divisible for that many threads.")
 
     args = parser.parse_args()
 
