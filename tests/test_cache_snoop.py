@@ -3,6 +3,7 @@ from cache_snoop import get_ttl_from_ns, norecurse_cache_snoop, \
 
 def test_get_ttl_from_ns():
     assert get_ttl_from_ns("google.com") == 300
+    assert get_ttl_from_ns("boss.latech.edu") == 60
 
 #this may occasionally fail during a test;
 #this is due to the instability of testing conditions for response times
