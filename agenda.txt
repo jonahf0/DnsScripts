@@ -1,0 +1,22 @@
+AGENDA
+
+
+##FIXED##
+1) fix bug related to host_discovery_one and two not having same size return arrays
+
+2) fix timeout issues:
+	2a) handle timeouts
+	2b) return proper timeout error messages, like where the timeout occurs
+
+3) make cache_snoop deduce even if ttl cannot be retrieved
+
+4) implement either:
+	4a) resolution of server-address-as-argument to a server name
+	4b) main function that does this while implementing all of the functionality,
+	so that the other scripts can remain untouched
+
+5) fix error when querying to resolver1.opendns.com:
+	cache_snoop on resolver1.opendns.com for azure.microsoft.com gave an IndexError on the return
+	statements of get_ttl_from_ns;
+	another timeout error was thrown when doing the same thing for office.microsoft.com;
+	similar timeout bug occurred when snooping on dns.google for weather.gov
