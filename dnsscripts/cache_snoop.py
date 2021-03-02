@@ -176,12 +176,18 @@ def cache_snoop(name, server, norecurse=True, deduce=True, verbose=False):
 
 if __name__ == "__main__":
 
-    parser = ArgumentParser()
+    parser = ArgumentParser(description="This script will try to snoop a certain hostname on a nameserver."+\
+        " If the target nameserver will not accept non-recursive queries, then the program will try to deduce whether or not the name was cached by"+\
+        " comparing the time-to-live values from the target and authoritative namservers and will compare the first and" +\
+        " second response times to an average response time and standard deviation.\n",
+        epilog="The first method of cache-snooping is NON-polluting and will not leave the targeted hostname cached in the target nameserver." +\
+        " The second and third methods of cache-snooping ARE polluting and will leave the targeted hostname cached in the target nameserver, so BE CAREFUL with these methods"
+        )
     parser.add_argument("hostname", help="The hostname to check the target cache for")
     parser.add_argument("nameserver", help="The nameserver that you are targeting for cache-snooping")
     parser.add_argument("--verbose", help="Verbosity for deducing cached entries", action="store_true")
-    parser.add_argument("--no-deduce", help="Opts out of deducing if entries are cached", action="store_true")
-    parser.add_argument("--only-deduce", help="Opts of out sending nonrecursive queries and only deducing;\nthis is helpful when you know the target server will refuse nonrecursive queries", action="store_true")
+    parser.add_argument("--no-deduce", help="Opts out of deducing cached entires", action="store_true")
+    parser.add_argument("--only-deduce", help="Opts of out sending nonrecursive queries and only deduces;\nthis is helpful when you know the target server will refuse non-recursive queries", action="store_true")
 
     args = parser.parse_args()
 
