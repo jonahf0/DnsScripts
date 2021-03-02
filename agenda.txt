@@ -3,3 +3,7 @@
 	2a) handle timeouts
 	2b) return proper timeout error messages, like where the timeout occurs
 3) make cache_snoop deduce even if ttl cannot be retrieved
+4) implement either:
+	4a) resolution of server-address-as-argument to a server name
+	4b) main function that does this while implementing all of the functionality,
+	so that the other scripts can remain untouched
