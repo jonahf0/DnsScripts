@@ -21,7 +21,7 @@ def reverse_forward_lookup(host, server, out=False):
     except Exception as e:
         return False
 
-def host_discovery_two(ipnetwork, server, out=False):
+def host_discovery_two(ipnetwork, server, out=False, queue=False):
 
     network = ip_network(ipnetwork)
 
@@ -39,7 +39,11 @@ def host_discovery_two(ipnetwork, server, out=False):
     
     hosts = list(potential_hosts)
 
-    if not out:
+    if not out and queue:
+        queue.put(hosts)
+
+
+    elif not out:
         return hosts
 
 def multithreaded_discovery(ipnetwork, server, threads, out=False):
@@ -59,14 +63,12 @@ def multithreaded_discovery(ipnetwork, server, threads, out=False):
 
         x = th.Thread(
             None,
-            target=host_discovery,
+            target=host_discovery_two,
             args=[subnets[num], server, out, queue]
         )
 
         x.start()
         current_threads.append(x)
-
-    print("Num of threads: {}".format(len(current_threads)))
 
     for thread in current_threads:
         thread.join()
