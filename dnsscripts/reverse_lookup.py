@@ -6,5 +6,5 @@ def reverse_lookup(ip):
         return data[0]
 
     except Exception as e:
-        print("Unable to reverse-lookup: {}".format(e))
+        #print("Unable to reverse-lookup: {}".format(e))
         return False
