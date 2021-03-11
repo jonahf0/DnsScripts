@@ -1,6 +1,6 @@
 from dns import resolver, query
 from return_response import query_data
-from reverse_lookup import reverse_lookup
+from socket import gethostbyaddr
 
 #tries to get a list of nameservers from a host
 def get_ns(name):
@@ -25,7 +25,7 @@ def get_master_ns(name, server=resolver.get_default_resolver().nameservers[0]):
 
     except resolver.NoAnswer:
 
-        server_name = reverse_lookup(server)
+        server_name = gethostbyaddr(server)[0]
 
         message, address = query_data(name, server_name, "SOA")
 
