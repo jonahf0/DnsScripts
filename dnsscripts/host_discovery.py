@@ -7,12 +7,18 @@ from dns import resolver
 import threading as th
 from queue import Queue
 
-def rl_with_server_closure(server):
+#closure function that binds a specific resolver to a function that reverse
+#looks up a hostname
+def rl_with_server_closure(server=None):
 
     cl_resolver = resolver.Resolver()
 
-    cl_resolver.nameservers = [server]
+    if server != None:
+        cl_resolver.nameservers = [server]
 
+    #the resolver is bound to this function;
+    #if the servers for the resolver are not modified, then the
+    #resolver uses the host's nameservers
     def func_to_return(host, out=False):
         try:
             response = cl_resolver.resolve_address(host)
@@ -29,69 +35,64 @@ def rl_with_server_closure(server):
 
     return func_to_return
 
-def reverse_lookup(host, out=False):
-    try:
-        hostname, aliases, ip = gethostbyaddr(host)
-
-        if out:
-            print("{}: {}".format( hostname, ip[0] ))
-
-        return ip[0]
-
-    except Exception as e:
-        return False
-
+#the main host_discovery lookup function, with multithreaded_discovery calling this one
+#but in multiple threads;
+#maps a reverse_lookup function to each ip in the ip_network object
 def host_discovery(ipnetwork, server=None, out=False, queue=False):
 
     network = ip_network(ipnetwork)
 
+    #get every possible host in the ip_network object
     potential_hosts = [ ip.exploded for ip in network ]
 
-    if server != None:
+    #function bound by resolver;
+    #the resolver may use the default host nameservers
+    reverse_lookup_closure = rl_with_server_closure(server)
 
-        reverse_lookup_closure = rl_with_server_closure(server)
-
-        potential_hosts = filter(
-            lambda a: a != False,
-            map(
-                reverse_lookup_closure,
-                potential_hosts,
-                repeat(out)
-            )
+    potential_hosts = filter(
+        lambda a: a != False,
+        map(
+            reverse_lookup_closure,
+            potential_hosts,
+            repeat(out)
         )
+    )
 
-    else:
-        potential_hosts = filter(
-            lambda a: a != False,
-            map(
-                reverse_lookup,
-                potential_hosts,
-                repeat(out)
-            )
-        )
-    
+    #create a list from the filter object    
     hosts = list(potential_hosts)
 
+    #if there IS a queue and the program is NOT verbose,
+    #then there are threads that want to return final list;
+    #since queue would be a reference to a queue and not just a copy,
+    #there is no stack issues
     if not out and queue:
         queue.put(hosts)
 
-
+    #if NOT verbose, the return hosts
     elif not out:
         return hosts
 
+#multithreaded function that creates tries to create the specified number of threads
+#to use with the host_discovery function
 def multithreaded_discovery(ipnetwork, threads, server=None, out=False):
 
+    #create a queue so ips can be actually returned and not
+    #printed out
     if not out:
         queue = Queue()
 
+    #set queue to False just for checking
     else:
         queue = False
 
     network = ip_network(ipnetwork)
 
+    #this tries to create different subnets based on the amount of threads;
+    #because of this, there may not be as many threads as specified by the user
     subnets = [ i for i in network.subnets( int(threads**(.5)) ) ]
     current_threads = []
 
+    #create a thread for each subnet and then start the thread
     for num in range(0, len(subnets)):
 
         x = th.Thread(
@@ -103,9 +104,13 @@ def multithreaded_discovery(ipnetwork, threads, server=None, out=False):
         x.start()
         current_threads.append(x)
 
+    #join the threads
     for thread in current_threads:
         thread.join()
 
+    #if there is a queue, then reduce the queue to a single 
+    #list; since each item in the queue's queue variable would
+    #be a list, then the return value is a single list
     if queue:
         return reduce( lambda a,b: a+b, queue.queue )
 
