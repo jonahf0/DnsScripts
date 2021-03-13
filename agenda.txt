@@ -8,6 +8,7 @@ AGENDA
 	2a) handle timeouts
 	2b) return proper timeout error messages, like where the timeout occurs
 
+##FIXED## --> fixed the way ttls are retrieved from master
 3) make cache_snoop deduce even if ttl cannot be retrieved
 
 4) implement either:
@@ -20,3 +21,5 @@ AGENDA
 	statements of get_ttl_from_ns;
 	another timeout error was thrown when doing the same thing for office.microsoft.com;
 	similar timeout bug occurred when snooping on dns.google for weather.gov
+
+6) rewrite cache_snoop to not use return_response; instead, use same technique host_discovery uses
