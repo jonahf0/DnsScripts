@@ -6,46 +6,70 @@ from ipaddress import ip_address
 from return_response import resolve_with_server_closure, rl_with_server_closure
 import threading as th
 
-from host_discovery import multithreaded_discovery
-
 # closure function that returns the lookup function;
 # binds the lookup space and resolver/reverse-lookup functions to
 # the returned function
 def range_lookup(server=None, space=5, out=False):
 
-    forward_resolve = resolve_with_server_closure(server, out)
-
-    rev_lookup = rl_with_server_closure(server, out)
-
+    verbose = out
     lookup_space = space
 
-    verbose = out
+    forward_resolve = resolve_with_server_closure(server, False)
+    rev_lookup = rl_with_server_closure(server, False)
+
+    set_of_hosts = set()
 
     def func_to_return(hostname):
 
+        hosts_and_ips = []
+
         # try to get the ip of a hostname;
         # False if there is no ip
-        ip = forward_resolve(hostname)
+        hit_ip = forward_resolve(hostname)
 
-        if ip != False:
+        if hit_ip != False:
+
+            if hit_ip not in set_of_hosts:
+                
+                set_of_hosts.add(hit_ip)
+                
+                hosts_and_ips.append(hit_ip)
+
+                if out:
+                    print("{}: {}".format(hit_ip[0], hit_ip[1]))
 
             # create a range of ips centered around the recently discovered one
             ip_range = [
-                (ip_address(ip) + i).exploded
+                (ip_address(hit_ip[1]) + i).exploded
                 for i in range(-lookup_space, lookup_space)
                 if i != 0
             ]
 
-            # map the reverse lookup function to each ip
-            hosts = list(map(rev_lookup, ip_range))
+            range_hosts = list(
+                filter(
+                    lambda a: a != False,
+                    map(rev_lookup, ip_range)
+                )
+            )
 
-            hosts.append(ip)
+            for key_val in range_hosts:
 
-            return hosts
+                host, ip = key_val
+                
+                if key_val not in set_of_hosts:
+
+                    set_of_hosts.add((host, ip))
+
+                    hosts_and_ips.append((host, ip))
+
+                    if out:
+                        print("{}: {}".format(host, ip))
+
+            return hosts_and_ips
 
         else:
 
-            return [False]
+            return False
 
     return func_to_return
 
@@ -64,23 +88,17 @@ def wordlist_lookup(domain, wordlist, server=None, space=5, out=False):
     # create the range lookup function;
     # resolves a hostname, then reverse looks up surrounding
     # ip addresses
-    resolver_func = range_lookup(server, space, False)
+    resolver_func = range_lookup(server, space, out)
 
-    # list(ips) is a list of lists, so reduce it down to a single
-    # list
-
-    other_func = resolve_with_server_closure(server, out)
-
-
-    final_ips = filter(
-        lambda b: b != False,
-        reduce(
-            lambda a, b: a + b,
+    final_ips = reduce(
+        lambda a, b: a + b,
+        filter(
+            lambda b: b != False,
             map(resolver_func, [word + "." + domain for word in words]),
         ),
     )
 
-    return list(set(final_ips))
+    return list(final_ips)
 
 
 if __name__ == "__main__":
