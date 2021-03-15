@@ -14,6 +14,7 @@ def resolve_with_server_closure(server=None, out=False):
 
     verbose = out
 
+    #the closure
     def func_to_return(hostname):
 
         try:
@@ -26,7 +27,7 @@ def resolve_with_server_closure(server=None, out=False):
 
                 print("{}: {}".format(hostname, ip))
 
-            return ip
+            return hostname, ip
 
         except Exception as e:
 
@@ -59,7 +60,7 @@ def rl_with_server_closure(server=None, out=False):
             if verbose:
                 print("{}: {}".format(hostname, host))
 
-            return host
+            return hostname, host
 
         except Exception as e:
             return False
