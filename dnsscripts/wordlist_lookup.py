@@ -1,6 +1,4 @@
 from argparse import ArgumentParser
-from dns import resolver
-from itertools import repeat
 from functools import reduce
 from ipaddress import ip_address
 from return_response import resolve_with_server_closure, rl_with_server_closure
@@ -11,16 +9,23 @@ import threading as th
 # the returned function
 def range_lookup(server=None, space=5, out=False):
 
+    # store the verbosity and lookup range
     verbose = out
     lookup_space = space
 
+    # get the resolve / lookup functions
     forward_resolve = resolve_with_server_closure(server, False)
     rev_lookup = rl_with_server_closure(server, False)
 
+    # create a set of hosts and ip pairs;
+    # the set prevents there from being repeats
     set_of_hosts = set()
 
+    # the closure
     def func_to_return(hostname):
 
+        # the closure's return value will either be this, a list
+        # of tuples, or False
         hosts_and_ips = []
 
         # try to get the ip of a hostname;
@@ -29,10 +34,11 @@ def range_lookup(server=None, space=5, out=False):
 
         if hit_ip != False:
 
+            # check to make sure this tuple isn't already in the set
             if hit_ip not in set_of_hosts:
-                
+
                 set_of_hosts.add(hit_ip)
-                
+
                 hosts_and_ips.append(hit_ip)
 
                 if out:
@@ -45,17 +51,15 @@ def range_lookup(server=None, space=5, out=False):
                 if i != 0
             ]
 
-            range_hosts = list(
-                filter(
-                    lambda a: a != False,
-                    map(rev_lookup, ip_range)
-                )
-            )
+            # create a list of tuples of hostnames and ips around the range;
+            # filters out False entries
+            range_hosts = list(filter(lambda a: a != False, map(rev_lookup, ip_range)))
 
+            # do the same thing for the first ip, but for each tuple in the range's hosts
             for key_val in range_hosts:
 
                 host, ip = key_val
-                
+
                 if key_val not in set_of_hosts:
 
                     set_of_hosts.add((host, ip))
