@@ -6,6 +6,7 @@ from argparse import ArgumentParser
 from dns import resolver
 import threading as th
 from queue import Queue
+from socket import gethostbyname
 
 # the main host_discovery lookup function, with multithreaded_discovery calling this one
 # but in multiple threads;
@@ -116,4 +117,17 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(args.network, args.server, args.threads, True)
+    try:
+        if args.server != None:
+            server = gethostbyname(args.server)
+
+        else:
+            server = None    
+        
+    except Exception as e:
+        parser.exit(message="There was problem with the server!\nHere is the error: {}\n".format(e))
+
+    if args.threads < 0:
+        parser.exit(message="Thread count cannot be lower than zero!\n")
+
+    main(args.network, server, args.threads, True)
