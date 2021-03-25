@@ -59,23 +59,23 @@ def get_response_times(name, server):
 # concludes whether or not the hostname was cached or not if verbose;
 # IMPORTANT: guesses based on TTLs or typically more accurate than guesses
 # based on response times, but not always (ex: yelp.com)
-def print_conclusion(initial_time, initial_ttl, second, avg_difference, official_ttl):
+def print_conclusion(name, initial_time, initial_ttl, second, avg_difference, official_ttl):
 
     # initial_ttl is occasionally equal to official-1,
     # even though it is not cached;
     # theoretically, offical should always equal initial if it was
     # NOT cached
     if official_ttl > initial_ttl + 1:
-        print("Based on the TTLs, the hostname was likely cached")
+        print("Based on the TTLs, {} was likely cached".format(name))
     else:
-        print("Based on the TTLs, the hostname was likely NOT cached")
+        print("Based on the TTLs, {} was likely NOT cached".format(name))
 
     # if the difference between the initial and second are much higher than
     # the upper bounds of the avg, then it is likely not cached
     if (initial_time - second) <= avg_difference[0] + avg_difference[1]:
-        print("Based on the response times, the hostname was likely cached")
+        print("Based on the response times, {} was likely cached".format(name))
     else:
-        print("Based on the response times, the hostname was likely NOT cached")
+        print("Based on the response times, {} was likely NOT cached".format(name))
 
 
 # prints info about calculations and such if verbose
@@ -106,7 +106,7 @@ def print_info(initial_time, initial_ttl, name, server):
         "Note: Conclusions based on the TTLs are more accurate\nthan conclusions based on the response times...\n"
     )
 
-    print_conclusion(initial_time, initial_ttl, second, avg_difference, official_ttl)
+    print_conclusion(name, initial_time, initial_ttl, second, avg_difference, official_ttl)
 
 
 # "gets straight to the point" when no verbosity
@@ -116,12 +116,12 @@ def reach_conclusion(initial_time, initial_ttl, name, server):
 
     official_ttl = get_ttl_from_ns(name)
 
-    print_conclusion(initial_time, initial_ttl, second, avg_difference, official_ttl)
+    print_conclusion(name, initial_time, initial_ttl, second, avg_difference, official_ttl)
 
 
 # main function for deducing whether or not a hostname is cached;
 # should run after trying a non-polluting cache-snoop, since
-def deduce_cache_snoop(name, server, verbose=False):
+def deduce_cache_snoop(name, server, out=False, verbose=False):
 
     # get a first response, the most important one:
     # the TTL for it will probably match the master server's TTL if not cached;
@@ -133,7 +133,8 @@ def deduce_cache_snoop(name, server, verbose=False):
 
         if verbose:
             print_info(initial_time, initial_ttl, name, server)
-        else:
+        
+        elif out:
             reach_conclusion(initial_time, initial_ttl, name, server)
 
     # IndexError from the overly-complex OOP-laden response object;
@@ -158,21 +159,34 @@ def deduce_cache_snoop(name, server, verbose=False):
 
 # the first cache_snoop function to try;
 # attempts to make a nonrecursive query
-def norecurse_cache_snoop(name, server):
+def norecurse_cache_snoop(name, server, out=False):
 
-    response = return_response_norecurse(name, server)
+    try:
+        response = return_response_norecurse(name, server)
+
+    except exception.Timeout:
+
+        if out:
+            print("The query timed out")
+
+        return False
 
     if response.rcode() == 0:
-        if len(response.answer) == 0:
-            print("The hostname {} was NOT cached.".format(name))
-        else:
-            print("The hostname {} was cached!".format(name))
+
+        if out:
+            if len(response.answer) == 0:
+                print("The hostname {} was NOT cached.".format(name))
+            else:
+                print("The hostname {} was cached!".format(name))
 
         return True
 
     else:
-        print("The server had an issue with the non-recursive query...")
-        print("Response code: {}\n".format(rcode.to_text(response.rcode())))
+
+        if out:
+            print("The server had an issue with the non-recursive query...")
+            print("Response code: {}\n".format(rcode.to_text(response.rcode())))
+        
         return False
 
 
