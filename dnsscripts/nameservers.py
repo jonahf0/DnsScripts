@@ -3,9 +3,14 @@ from return_response import query_data
 from socket import gethostbyaddr
 
 # tries to get a list of nameservers from a host
-def get_ns(name):
+def get_ns(name, server=None):
 
     nameservers = []
+
+    ns_resolver = resolver.Resolver()
+
+    if server != None:
+        ns_resolver.nameservers = [server]
 
     # gets nameservers response message
     response = resolver.resolve(name, "NS").response.answer[0]
@@ -25,11 +30,20 @@ def get_master_ns(name, server=resolver.get_default_resolver().nameservers[0]):
         return response.response.answer[0][0].mname.to_text()
 
     except resolver.NoAnswer:
+        
+        try:
+            server_name = gethostbyaddr(server)[0]
 
-        server_name = gethostbyaddr(server)[0]
+            message, address = query_data(name, server_name, "SOA")
 
-        message, address = query_data(name, server_name, "SOA")
+            response = query.udp(message, address)
 
-        response = query.udp(message, address)
+            return response.authority[0].to_rdataset()[0].mname.to_text()
 
-        return response.authority[0].to_rdataset()[0].mname.to_text()
+        except:
+
+            return False
+    
+    except:
+        
+        return False
