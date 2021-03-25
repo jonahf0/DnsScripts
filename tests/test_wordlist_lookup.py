@@ -1,5 +1,16 @@
 from wordlist_lookup import *
 
+def test_multithreaded_vs_singlethreaded():
+
+    words = ["ns1", "mail"]
+
+    multi = multithreaded_lookup("google.com", words, threads=2, server="216.239.32.10") 
+    single = wordlist_lookup("google.com", words, server="216.239.32.10")
+
+    multi.sort()
+    single.sort()
+
+    assert multi == single
 
 def test_range_lookup():
 
