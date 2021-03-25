@@ -193,16 +193,16 @@ def norecurse_cache_snoop(name, server, out=False):
 # the main function;
 # practically runs either norecurse or deduce cache_snoop functions
 # with a verbosity
-def cache_snoop(name, server, norecurse=True, deduce=True, verbose=False):
+def cache_snoop(name, server, norecurse=True, deduce=True, out=False, verbose=False):
 
     attempt_one = False
 
     if norecurse:
-        attempt_one = norecurse_cache_snoop(name, server)
+        attempt_one = norecurse_cache_snoop(name, server, out)
 
     if not attempt_one and deduce:
 
-        deduce_cache_snoop(name, server, verbose)
+        deduce_cache_snoop(name, server, out, verbose)
 
 
 if __name__ == "__main__":
@@ -253,4 +253,4 @@ if __name__ == "__main__":
         deduce = True
         norecurse = True
 
-    cache_snoop(name, server, norecurse, deduce, verbose)
+    cache_snoop(name, server, norecurse, deduce, True, verbose)
