@@ -2,7 +2,11 @@ from argparse import ArgumentParser
 from functools import reduce
 from ipaddress import ip_address
 from return_response import resolve_with_server_closure, rl_with_server_closure
+from socket import gethostbyname
+from queue import Queue
+
 import threading as th
+import os.path
 
 # closure function that returns the lookup function;
 # binds the lookup space and resolver/reverse-lookup functions to
@@ -82,27 +86,74 @@ def range_lookup(server=None, space=5, out=False):
 # to map to the list based on whether there is a server or not;
 # instead of using the resolver closure for both cases, resolve_hostname
 # is used because of speed improvements
-def wordlist_lookup(domain, wordlist, server=None, space=5, out=False):
+def wordlist_lookup(domain, wordlist, server=None, space=5, out=False, queue=None):
 
-    with open(wordlist, "r") as f:
-
-        # in the list comprehension, remove the newline characters
-        words = [word.replace("\n", "") for word in f]
+    words = wordlist
 
     # create the range lookup function;
     # resolves a hostname, then reverse looks up surrounding
     # ip addresses
     resolver_func = range_lookup(server, space, out)
 
-    final_ips = reduce(
-        lambda a, b: a + b,
-        filter(
-            lambda b: b != False,
-            map(resolver_func, [word + "." + domain for word in words]),
-        ),
-    )
+    try:
+        final_ips = reduce(
+            lambda a, b: a + b,
+            filter(
+                lambda b: b != False,
+                map(resolver_func, [word + "." + domain for word in words]),
+            ),
+        )
 
-    return list(final_ips)
+    except TypeError:
+        final_ips = []
+
+    if queue != None:
+        queue.put(list(final_ips))
+
+    else:
+        return list(final_ips)
+
+def multithreaded_lookup(domain, wordlist, server=None, space=5, threads=0, out=False):
+    
+    #make a new global queue
+    queue = Queue()
+
+    #get the size that the wordlist lists will be 
+    size_of_sublists = int(len(wordlist)/threads)
+
+    #create the sublists out of the wordlist
+    subwordlists = [ wordlist[i:i+size_of_sublists] for i in range(0, len(wordlist), size_of_sublists) ]
+
+    current_threads = []
+
+    for sublist in subwordlists:
+
+        #each thread receives a point to the queue
+        thread = th.Thread(
+            None, target=wordlist_lookup, args=[domain, sublist, server, space, out, queue]
+        )
+
+        thread.start()
+        current_threads.append(thread)
+
+    for thread in current_threads:
+        thread.join()
+
+    #returns the list that represents the queue
+    return reduce(lambda a, b: a + b, queue.queue)
+
+def main(domain, wordlist_file, server=None, space=5, threads=0, out=False):
+
+    with open(wordlist_file, "r") as f:
+
+        # in the list comprehension, remove the newline characters
+        words = [word.rstrip() for word in f]
+
+    if threads > 0:
+        multithreaded_lookup(domain, words, server, space, threads, out)
+
+    else:
+        wordlist_lookup(domain, words, server, space, out)
 
 
 if __name__ == "__main__":
@@ -135,4 +186,23 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    wordlist_lookup(args.domain, args.wordlist, args.server, args.space, True)
+    if not os.path.exists(args.wordlist):
+        parser.exit(message="The wordlist file does not exist!\n")
+
+    if args.threads < 0:
+        parser.exit(message="Thread count cannot be lower than zero!\n")
+
+    if args.space < 0:
+        parser.exit(message="Lookup range cannot be lower than zero!\n")
+
+    try:
+        if args.server != None: 
+            server = gethostbyname(args.server)
+
+        else:
+            server = None
+
+    except Exception as e:
+        parser.exit(message="There was problem with the server!\nHere is the error: {}\n".format(e))
+
+    main(args.domain, args.wordlist, server, args.space, args.threads, True)
