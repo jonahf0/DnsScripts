@@ -1,11 +1,16 @@
 from host_discovery import *
 from ipaddress import IPv4Address
 
+
+def test_host_discovery():
+    assert host_discovery("8.8.8.8/32") == [("dns.google.","8.8.8.8")]
+
+
 def test_multithreaded_vs_singlethreaded():
-    assert len(multithreaded_discovery("74.192.196.0/28", "dns.google", 4)) == len(host_discovery("74.192.196.0/28", "dns.google"))
+    assert len(multithreaded_discovery("74.192.196.0/28", 4)) == len(
+        host_discovery("74.192.196.0/28")
+    )
 
-def test_one_vs_two():
-    assert host_discovery("74.192.196.0/28", "dns.google") == host_discovery_two("74.192.196.0/28", "dns.google")
-
-def test_reverse_forward_lookup():
-    assert reverse_forward_lookup(IPv4Address("8.8.8.8"), "resolver1.opendns.com") == "8.8.8.8" or "8.8.4.4"
+def test_rl_with_server_closure():
+    func = rl_with_server_closure("8.8.8.8")
+    assert func("208.67.222.222") == ("resolver1.opendns.com.","208.67.222.222")

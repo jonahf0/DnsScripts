@@ -533,6 +533,7 @@ dns3
 do
 docs
 documentacion
+documentation
 documentos
 domain
 domains
