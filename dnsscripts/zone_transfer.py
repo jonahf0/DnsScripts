@@ -1,6 +1,6 @@
 from dns import resolver, zone, query, xfr
 
-
+#attempts to perform a zone transfer on the target
 def perform_zone_transfer(domain, server):
 
     serv_addr = resolver.resolve(server, "A")[0].address
@@ -18,7 +18,7 @@ def perform_zone_transfer(domain, server):
 
     return deliverable
 
-
+#just a utility for printing a zone transfer
 def print_zone_transfer(transfer):
 
     for i in transfer:
