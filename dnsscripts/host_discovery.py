@@ -122,10 +122,14 @@ if __name__ == "__main__":
             server = gethostbyname(args.server)
 
         else:
-            server = None    
-        
+            server = None
+
     except Exception as e:
-        parser.exit(message="There was problem with the server!\nHere is the error: {}\n".format(e))
+        parser.exit(
+            message="There was problem with the server!\nHere is the error: {}\n".format(
+                e
+            )
+        )
 
     if args.threads < 0:
         parser.exit(message="Thread count cannot be lower than zero!\n")

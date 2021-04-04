@@ -14,7 +14,7 @@ def resolve_with_server_closure(server=None, out=False):
 
     verbose = out
 
-    #the closure
+    # the closure
     def func_to_return(hostname):
 
         try:

@@ -30,7 +30,7 @@ def get_master_ns(name, server=resolver.get_default_resolver().nameservers[0]):
         return response.response.answer[0][0].mname.to_text()
 
     except resolver.NoAnswer:
-        
+
         try:
             server_name = gethostbyaddr(server)[0]
 
@@ -43,7 +43,7 @@ def get_master_ns(name, server=resolver.get_default_resolver().nameservers[0]):
         except:
 
             return False
-    
+
     except:
-        
+
         return False

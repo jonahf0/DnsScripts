@@ -113,24 +113,30 @@ def wordlist_lookup(domain, wordlist, server=None, space=5, out=False, queue=Non
     else:
         return list(final_ips)
 
+
 def multithreaded_lookup(domain, wordlist, server=None, space=5, threads=0, out=False):
-    
-    #make a new global queue
+
+    # make a new global queue
     queue = Queue()
 
-    #get the size that the wordlist lists will be 
-    size_of_sublists = int(len(wordlist)/threads)
+    # get the size that the wordlist lists will be
+    size_of_sublists = int(len(wordlist) / threads)
 
-    #create the sublists out of the wordlist
-    subwordlists = [ wordlist[i:i+size_of_sublists] for i in range(0, len(wordlist), size_of_sublists) ]
+    # create the sublists out of the wordlist
+    subwordlists = [
+        wordlist[i : i + size_of_sublists]
+        for i in range(0, len(wordlist), size_of_sublists)
+    ]
 
     current_threads = []
 
     for sublist in subwordlists:
 
-        #each thread receives a point to the queue
+        # each thread receives a point to the queue
         thread = th.Thread(
-            None, target=wordlist_lookup, args=[domain, sublist, server, space, out, queue]
+            None,
+            target=wordlist_lookup,
+            args=[domain, sublist, server, space, out, queue],
         )
 
         thread.start()
@@ -139,8 +145,9 @@ def multithreaded_lookup(domain, wordlist, server=None, space=5, threads=0, out=
     for thread in current_threads:
         thread.join()
 
-    #returns the list that represents the queue
+    # returns the list that represents the queue
     return reduce(lambda a, b: a + b, queue.queue)
+
 
 def main(domain, wordlist_file, server=None, space=5, threads=0, out=False):
 
@@ -196,13 +203,17 @@ if __name__ == "__main__":
         parser.exit(message="Lookup range cannot be lower than zero!\n")
 
     try:
-        if args.server != None: 
+        if args.server != None:
             server = gethostbyname(args.server)
 
         else:
             server = None
 
     except Exception as e:
-        parser.exit(message="There was problem with the server!\nHere is the error: {}\n".format(e))
+        parser.exit(
+            message="There was problem with the server!\nHere is the error: {}\n".format(
+                e
+            )
+        )
 
     main(args.domain, args.wordlist, server, args.space, args.threads, True)

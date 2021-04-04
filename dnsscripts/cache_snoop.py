@@ -59,7 +59,9 @@ def get_response_times(name, server):
 # concludes whether or not the hostname was cached or not if verbose;
 # IMPORTANT: guesses based on TTLs or typically more accurate than guesses
 # based on response times, but not always (ex: yelp.com)
-def print_conclusion(name, initial_time, initial_ttl, second, avg_difference, official_ttl):
+def print_conclusion(
+    name, initial_time, initial_ttl, second, avg_difference, official_ttl
+):
 
     # initial_ttl is occasionally equal to official-1,
     # even though it is not cached;
@@ -106,7 +108,9 @@ def print_info(initial_time, initial_ttl, name, server):
         "Note: Conclusions based on the TTLs are more accurate\nthan conclusions based on the response times...\n"
     )
 
-    print_conclusion(name, initial_time, initial_ttl, second, avg_difference, official_ttl)
+    print_conclusion(
+        name, initial_time, initial_ttl, second, avg_difference, official_ttl
+    )
 
 
 # "gets straight to the point" when no verbosity
@@ -116,7 +120,9 @@ def reach_conclusion(initial_time, initial_ttl, name, server):
 
     official_ttl = get_ttl_from_ns(name)
 
-    print_conclusion(name, initial_time, initial_ttl, second, avg_difference, official_ttl)
+    print_conclusion(
+        name, initial_time, initial_ttl, second, avg_difference, official_ttl
+    )
 
 
 # main function for deducing whether or not a hostname is cached;
@@ -133,7 +139,7 @@ def deduce_cache_snoop(name, server, out=False, verbose=False):
 
         if verbose:
             print_info(initial_time, initial_ttl, name, server)
-        
+
         elif out:
             reach_conclusion(initial_time, initial_ttl, name, server)
 
@@ -186,7 +192,7 @@ def norecurse_cache_snoop(name, server, out=False):
         if out:
             print("The server had an issue with the non-recursive query...")
             print("Response code: {}\n".format(rcode.to_text(response.rcode())))
-        
+
         return False
 
 
